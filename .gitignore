@@ -1,0 +1,22 @@
+# Django
+house_back/venv/
+house_back/db.sqlite3
+house_back/media/
+house_back/__pycache__/
+house_back/*.pyc
+house_back/.env
+
+# React / Node
+housing/node_modules/
+housing/dist/
+housing/.env
+housing/.env.local
+
+# IDEs
+.vscode/
+.idea/
+.gemini/
+
+# OS
+.DS_Store
+Thumbs.db
