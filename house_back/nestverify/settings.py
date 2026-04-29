@@ -12,7 +12,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-produc
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='localhost,127.0.0.1,[::1]',
+    default='localhost,127.0.0.1,[::1],.onrender.com',
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
 
@@ -173,22 +173,7 @@ SIMPLE_JWT = {
 }
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
-CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=DEBUG, cast=bool)
-FRONTEND_URL = config('FRONTEND_URL', default=None)
-
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-]
-
-if FRONTEND_URL:
-    # Ensure no trailing slash and add to allowed origins
-    frontend_origin = FRONTEND_URL.rstrip('/')
-    if frontend_origin not in CORS_ALLOWED_ORIGINS:
-        CORS_ALLOWED_ORIGINS.append(frontend_origin)
-
+CORS_ALLOW_ALL_ORIGINS = True  # Forced to True for troubleshooting
 CORS_ALLOW_CREDENTIALS = True
 
 # ── CSRF ──────────────────────────────────────────────────────────────────────
