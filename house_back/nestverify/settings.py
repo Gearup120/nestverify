@@ -170,15 +170,10 @@ SIMPLE_JWT = {
 }
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
-CORS_ALLOW_CREDENTIALS = True
-
-CORS_ALLOWED_ORIGINS = [
-    'https://nestverify-frontend.onrender.com',
-    'http://localhost:5173',
-]
+CORS_ALLOW_ALL_ORIGINS = True
 
 # ── CSRF ──────────────────────────────────────────────────────────────────────
-CSRF_TRUSTED_ORIGINS = list(CORS_ALLOWED_ORIGINS)
+CSRF_TRUSTED_ORIGINS = ['https://nestverify-frontend.onrender.com']
 
 # ── Email (SMTP) ────────────────────────────────────────────────────────
 EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
