@@ -6,14 +6,17 @@ import Navbar from '../components/layout/Navbar'
 import { Search, ShieldCheck, CreditCard, UserCheck, FileText, Star, ChevronRight, MapPin, Home, DollarSign } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import slide1 from '../assets/slide1.png'
+import slide2 from '../assets/slide2.png'
+
 export default function PropertiesPage() {
   const propertiesRef = useRef(null)
   const [properties, setProperties] = useState([])
   const [loading, setLoading] = useState(true)
   const [currentSlide, setCurrentSlide] = useState(0)
   const slides = [
-    '/src/assets/slide1.png',
-    '/src/assets/slide2.png',
+    slide1,
+    slide2,
     'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=1920'
   ]
 
