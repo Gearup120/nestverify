@@ -173,7 +173,7 @@ SIMPLE_JWT = {
 }
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
-RENDER_EXTERNAL_URL = config('RENDER_EXTERNAL_URL', default=None)
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=DEBUG, cast=bool)
 FRONTEND_URL = config('FRONTEND_URL', default=None)
 
 CORS_ALLOWED_ORIGINS = [
@@ -183,18 +183,17 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5173',
 ]
 
-if RENDER_EXTERNAL_URL:
-    CORS_ALLOWED_ORIGINS.append(RENDER_EXTERNAL_URL)
 if FRONTEND_URL:
-    CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
+    # Ensure no trailing slash and add to allowed origins
+    frontend_origin = FRONTEND_URL.rstrip('/')
+    if frontend_origin not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(frontend_origin)
 
 CORS_ALLOW_CREDENTIALS = True
 
 # ── CSRF ──────────────────────────────────────────────────────────────────────
-CSRF_TRUSTED_ORIGINS = list(CORS_ALLOWED_ORIGINS)
-
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
+# CSRF needs the origin with the scheme (https://)
+CSRF_TRUSTED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS if origin.startswith('http')]
 
 # ── Email (SMTP) ────────────────────────────────────────────────────────
 EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
