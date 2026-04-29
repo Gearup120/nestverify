@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { propertiesAPI } from '../../api'
 import { BedDouble, Bath, MapPin, ShieldCheck, Star, Heart, Square, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
-import placeholderImg from '../../assets/nestverify_hero_cinematic.png'
+import placeholderImg from '../../assets/nestverify_hero_new.png'
 
 export default function PropertyCard({ property, onUnsave }) {
   const { user } = useAuth()
