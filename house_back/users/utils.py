@@ -128,6 +128,8 @@ def send_otp_email(user) -> bool:
     html_content = get_otp_email_html(first_name, code)
     
     brevo_api_key = os.environ.get('BREVO_API_KEY')
+    sender_email = os.environ.get('BREVO_SMTP_LOGIN', 'gearup002211@gmail.com')
+    
     if not brevo_api_key:
         print("[NestVerify] ERROR: BREVO_API_KEY is not set in environment!")
         return False
@@ -139,7 +141,7 @@ def send_otp_email(user) -> bool:
         "content-type": "application/json"
     }
     payload = {
-        "sender": {"name": "NestVerify", "email": "gearup002211@gmail.com"},
+        "sender": {"name": "NestVerify", "email": sender_email},
         "to": [{"email": user.email, "name": first_name}],
         "subject": subject,
         "htmlContent": html_content
