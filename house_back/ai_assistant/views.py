@@ -78,25 +78,32 @@ class AIAssistantView(APIView):
         full_system = f"{SYSTEM_PROMPT}\n\n{property_context}"
 
         try:
-            # Forcefully remove proxy environment variables that cause the Groq client to crash on Render
-            for var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']:
-                os.environ.pop(var, None)
-
-            from groq import Groq
-            client = Groq(api_key=api_key)
-
-            response = client.chat.completions.create(
-                model='llama-3.1-8b-instant',
-                messages=[
-                    {'role': 'system', 'content': full_system},
+            import requests
+            
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "llama-3.1-8b-instant",
+                "messages": [
+                    {"role": "system", "content": full_system},
                     *messages
                 ],
-                max_tokens=1024,
-                temperature=0.7,
-            )
+                "max_tokens": 1024,
+                "temperature": 0.7
+            }
 
-            reply = response.choices[0].message.content
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            response.raise_for_status()
+            
+            data = response.json()
+            reply = data['choices'][0]['message']['content']
             return Response({'reply': reply})
 
         except Exception as e:
-            return Response({'error': f'AI service error: {str(e)}'}, status=500)
+            error_msg = f"AI service error: {str(e)}"
+            if 'response' in locals() and hasattr(response, 'text'):
+                error_msg += f" | Details: {response.text}"
+            return Response({'error': error_msg}, status=500)
