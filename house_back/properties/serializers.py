@@ -42,24 +42,31 @@ class PropertySerializer(serializers.ModelSerializer):
         ]
 
     def to_internal_value(self, data):
-        if hasattr(data, 'dict'):
+        # Handle MultiValueDict (form-data)
+        if hasattr(data, 'getlist'):
             plain = {}
             for key in data.keys():
-                values = data.getlist(key)
-                plain[key] = values if len(values) > 1 else values[0]
-            if 'uploaded_images' in data:
-                plain['uploaded_images'] = data.getlist('uploaded_images')
+                if key == 'uploaded_images':
+                    plain[key] = data.getlist(key)
+                else:
+                    values = data.getlist(key)
+                    plain[key] = values if len(values) > 1 else values[0]
             data = plain
 
-        amenities_raw = data.get('amenities', None)
+        # Handle amenities parsing
+        amenities_raw = data.get('amenities', [])
         if isinstance(amenities_raw, str):
-            try:
-                parsed = json.loads(amenities_raw)
-                if isinstance(parsed, list):
-                    data['amenities'] = parsed
-            except (json.JSONDecodeError, ValueError):
+            if not amenities_raw.strip():
                 data['amenities'] = []
-
+            else:
+                try:
+                    # Try JSON first
+                    parsed = json.loads(amenities_raw)
+                    data['amenities'] = parsed if isinstance(parsed, list) else [str(parsed)]
+                except (json.JSONDecodeError, ValueError):
+                    # Fallback to comma-separated
+                    data['amenities'] = [a.strip() for a in amenities_raw.split(',') if a.strip()]
+        
         if 'amenities' not in data or data['amenities'] is None:
             data['amenities'] = []
 

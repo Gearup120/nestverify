@@ -241,16 +241,35 @@ class ContactView(APIView):
         if not all([name, email, subject, message]):
             return Response({'error': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        full_message = f"Message from {name} ({email}):\n\n{message}"
+        # Use Brevo HTTP API instead of SMTP
+        import requests
+        import os
+
+        api_key = os.environ.get('BREVO_API_KEY')
+        sender_email = os.environ.get('BREVO_SMTP_LOGIN', 'gearup002211@gmail.com')
         
+        if not api_key:
+            return Response({'error': 'Email service not configured.'}, status=500)
+
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "api-key": api_key,
+            "content-type": "application/json"
+        }
+        payload = {
+            "sender": {"name": "NestVerify Support", "email": sender_email},
+            "to": [{"email": "gearup002211@gmail.com", "name": "Admin"}],
+            "replyTo": {"email": email, "name": name},
+            "subject": f"[NestVerify Support] {subject}",
+            "htmlContent": f"<html><body><h3>Support Message</h3><p><strong>From:</strong> {name} ({email})</p><p><strong>Message:</strong></p><p>{message}</p></body></html>"
+        }
+
         try:
-            send_mail(
-                subject=f"[NestVerify Support] {subject}",
-                message=full_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=['tboad04@gmail.com'],
-                fail_silently=False,
-            )
-            return Response({'message': 'Message sent successfully.'})
+            resp = requests.post(url, headers=headers, json=payload, timeout=10)
+            if resp.status_code in [200, 201]:
+                return Response({'message': 'Your message has been sent. We will get back to you soon.'})
+            else:
+                return Response({'error': f'Failed to send email: {resp.text}'}, status=500)
         except Exception as e:
-            return Response({'error': f'Failed to send message: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)}, status=500)

@@ -21,9 +21,9 @@ export function useChat(conversationId) {
   useEffect(() => {
     if (!conversationId) return
     const token = localStorage.getItem('access_token')
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    const wsHost = window.location.host  // localhost:5173 — proxied to 8001
-    const wsUrl = `${wsProtocol}://${wsHost}/ws/chat/${conversationId}/?token=${token}`
+    const apiBase = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+    const wsBase = apiBase.replace('http', 'ws')
+    const wsUrl = `${wsBase}/ws/chat/${conversationId}/?token=${token}`
 
     const ws = new WebSocket(wsUrl)
     ws.onopen = () => setConnected(true)
