@@ -73,15 +73,20 @@ class PropertySerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
     def create(self, validated_data):
-        uploaded_images = validated_data.pop('uploaded_images', [])
-        property_obj = Property.objects.create(**validated_data)
-        for i, img in enumerate(uploaded_images):
-            PropertyImage.objects.create(
-                property=property_obj,
-                image=img,
-                is_primary=(i == 0)
-            )
-        return property_obj
+        try:
+            uploaded_images = validated_data.pop('uploaded_images', [])
+            property_obj = Property.objects.create(**validated_data)
+            
+            for i, img in enumerate(uploaded_images):
+                PropertyImage.objects.create(
+                    property=property_obj,
+                    image=img,
+                    is_primary=(i == 0)
+                )
+            return property_obj
+        except Exception as e:
+            # Re-raise with more context so the view can catch it
+            raise serializers.ValidationError({'error': f"Database or Upload Error: {str(e)}"})
 
 
 class PropertyListSerializer(serializers.ModelSerializer):

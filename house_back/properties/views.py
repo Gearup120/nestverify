@@ -67,13 +67,18 @@ class PropertyListCreateView(generics.ListCreateAPIView):
         return [permissions.IsAuthenticated()]
 
     def perform_create(self, serializer):
-        prop = serializer.save(owner=self.request.user)
-        fraud_service = FraudDetectionService()
-        result = fraud_service.analyze_property(prop)
-        prop.fraud_score = result['score']
-        prop.fraud_flags = result['flags']
-        prop.status = 'pending'
-        prop.save()
+        try:
+            prop = serializer.save(owner=self.request.user)
+            fraud_service = FraudDetectionService()
+            result = fraud_service.analyze_property(prop)
+            prop.fraud_score = result['score']
+            prop.fraud_flags = result['flags']
+            prop.status = 'pending'
+            prop.save()
+        except Exception as e:
+            # We raise a validation error so DRF returns a 400 instead of a 500
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'detail': f"Operation failed: {str(e)}"})
 
 
 class PropertyDetailView(generics.RetrieveUpdateDestroyAPIView):
