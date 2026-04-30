@@ -44,12 +44,13 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
         
         # Send OTP email
-        sent = send_otp_email(user)
+        sent, error_msg = send_otp_email(user)
         
         return Response({
             'message': 'Account created successfully. Please check your email for the verification code.',
             'user': UserProfileSerializer(user).data,
-            'email_sent': sent
+            'email_sent': sent,
+            'email_error': error_msg
         }, status=status.HTTP_201_CREATED)
 
 
@@ -78,11 +79,13 @@ class LoginView(APIView):
 
         if not user.is_email_verified:
             # If not verified, resend OTP and inform the user
-            send_otp_email(user)
+            sent, error_msg = send_otp_email(user)
             return Response({
                 'error': 'Email not verified.',
                 'needs_verification': True,
-                'email': user.email
+                'email': user.email,
+                'email_sent': sent,
+                'email_error': error_msg
             }, status=status.HTTP_403_FORBIDDEN)
 
         refresh = RefreshToken.for_user(user)
@@ -144,8 +147,12 @@ class ResendOTPView(APIView):
             if user.is_email_verified:
                 return Response({'message': 'Email already verified.'})
             
-            sent = send_otp_email(user)
-            return Response({'message': 'New verification code sent.' if sent else 'Failed to send email.'})
+            sent, error_msg = send_otp_email(user)
+            return Response({
+                'message': 'New verification code sent.' if sent else 'Failed to send email.',
+                'email_sent': sent,
+                'email_error': error_msg
+            })
         except User.DoesNotExist:
             return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 

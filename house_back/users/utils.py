@@ -104,8 +104,8 @@ def get_otp_email_html(first_name: str, code: str) -> str:
 </html>
 """
 
-def send_otp_email(user) -> bool:
-    """Send OTP verification email via Brevo HTTP API to bypass Render SMTP block."""
+def send_otp_email(user) -> tuple:
+    """Send OTP verification email via Brevo HTTP API. Returns (success, error_message)."""
     import requests
     import os
     
@@ -115,7 +115,7 @@ def send_otp_email(user) -> bool:
         created_at__gt=timezone.now() - timedelta(seconds=60)
     ).first()
     if recent:
-        return True
+        return True, "Cooldown active"
 
     # Invalidate previous unused OTPs
     OTP.objects.filter(user=user, is_used=False).update(is_used=True)
@@ -131,8 +131,9 @@ def send_otp_email(user) -> bool:
     sender_email = os.environ.get('BREVO_SMTP_LOGIN', 'gearup002211@gmail.com')
     
     if not brevo_api_key:
-        print("[NestVerify] ERROR: BREVO_API_KEY is not set in environment!")
-        return False
+        msg = "BREVO_API_KEY is not set in Render environment!"
+        print(f"[NestVerify] ERROR: {msg}")
+        return False, msg
         
     url = "https://api.brevo.com/v3/smtp/email"
     headers = {
@@ -151,10 +152,12 @@ def send_otp_email(user) -> bool:
         response = requests.post(url, headers=headers, json=payload, timeout=10)
         if response.status_code in [200, 201]:
             print(f"[NestVerify] OTP sent successfully to {user.email}")
-            return True
+            return True, "Success"
         else:
-            print(f"[NestVerify] Failed to send OTP: {response.text}")
-            return False
+            error_data = response.text
+            print(f"[NestVerify] Failed to send OTP: {error_data}")
+            return False, error_data
     except Exception as e:
-        print(f"[NestVerify] Exception while sending OTP via API: {e}")
-        return False
+        error_msg = f"Exception: {str(e)}"
+        print(f"[NestVerify] {error_msg}")
+        return False, error_msg
