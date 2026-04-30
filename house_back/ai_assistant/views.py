@@ -78,13 +78,12 @@ class AIAssistantView(APIView):
         full_system = f"{SYSTEM_PROMPT}\n\n{property_context}"
 
         try:
+            # Forcefully remove proxy environment variables that cause the Groq client to crash on Render
+            for var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']:
+                os.environ.pop(var, None)
+
             from groq import Groq
-            import httpx
-            
-            # Use a custom http_client to avoid the "unexpected keyword argument 'proxies'" error
-            # which happens on some hosting environments like Render.
-            http_client = httpx.Client(proxies=None)
-            client = Groq(api_key=api_key, http_client=http_client)
+            client = Groq(api_key=api_key)
 
             response = client.chat.completions.create(
                 model='llama-3.1-8b-instant',
