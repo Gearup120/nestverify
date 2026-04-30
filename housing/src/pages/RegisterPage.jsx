@@ -34,8 +34,12 @@ export default function RegisterPage() {
 
     setLoading(true)
     try {
-      await register(formData)
-      toast.success('Account created! Check your email for the verification code.')
+      const data = await register(formData)
+      if (data.email_sent === false) {
+        toast.error(`Account created, but email failed: ${data.email_error || 'Unknown error'}`)
+      } else {
+        toast.success('Account created! Check your email for the verification code.')
+      }
       // ✅ Pass email via state so VerifyOTPPage can read it
       navigate('/verify-otp', { state: { email: formData.email } })
     } catch (err) {
