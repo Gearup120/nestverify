@@ -174,7 +174,7 @@ def send_otp_email(user) -> bool:
         smtp_msg.attach(MIMEText(plain_text, "plain"))
         smtp_msg.attach(MIMEText(html_content, "html"))
 
-        with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT, timeout=30) as server:
+        with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT, timeout=3) as server:
             server.set_debuglevel(1)  # Verbose SMTP log
             server.ehlo()
             server.starttls()
