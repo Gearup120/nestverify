@@ -79,10 +79,15 @@ class AIAssistantView(APIView):
 
         try:
             from groq import Groq
-            client = Groq(api_key=api_key)
+            import httpx
+            
+            # Use a custom http_client to avoid the "unexpected keyword argument 'proxies'" error
+            # which happens on some hosting environments like Render.
+            http_client = httpx.Client(proxies=None)
+            client = Groq(api_key=api_key, http_client=http_client)
 
             response = client.chat.completions.create(
-                model='llama-3.1-8b-instant',  # free, fast model
+                model='llama-3.1-8b-instant',
                 messages=[
                     {'role': 'system', 'content': full_system},
                     *messages
